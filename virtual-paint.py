@@ -5,7 +5,6 @@ import numpy as np
 lower_bound = (100, 100, 100)
 upper_bound = (130, 255, 255)
 
-# Initialize points for drawing
 points = []
 
 # Initialize webcam
@@ -15,7 +14,6 @@ if not cap.isOpened():
     print("Error: Could not open webcam.")
     exit()
 
-# Create a blank canvas
 canvas = None
 
 while True:
@@ -40,14 +38,11 @@ while True:
     mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
 
-    # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if contours:
-        # Find the largest contour
         largest_contour = max(contours, key=cv2.contourArea)
         
-        # Calculate the center of the contour
         M = cv2.moments(largest_contour)
         if M['m00'] != 0:
             cx = int(M['m10'] / M['m00'])
@@ -60,20 +55,18 @@ while True:
             continue
         cv2.line(canvas, points[i - 1], points[i], (255, 0, 0), 3)
 
-    # Merge the canvas with the original frame
     combined = cv2.add(frame, canvas)
     
     # Create a white background for the mask display
     mask_canvas = np.zeros_like(canvas)
     mask_canvas.fill(255)
     
-    # Draw the path on the mask canvas in black
+    # Draw the path on the mask canvas
     for i in range(1, len(points)):
         if points[i - 1] is None or points[i] is None:
             continue
         cv2.line(mask_canvas, points[i - 1], points[i], (0, 0, 0), 3)
 
-    # Display the result
     cv2.imshow('Virtual Paint', combined)
     cv2.imshow('Mask', mask_canvas)
 
@@ -90,6 +83,5 @@ while True:
             cv2.imwrite('virtual_paint_output.png', canvas)
         break
 
-# Release resources
 cap.release()
 cv2.destroyAllWindows()
