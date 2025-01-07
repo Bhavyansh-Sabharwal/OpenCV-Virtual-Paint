@@ -24,6 +24,9 @@ while True:
         print("Error: Unable to read frame.")
         break
 
+    # Mirror the frame horizontally
+    frame = cv2.flip(frame, 1)
+
     if canvas is None:
         canvas = np.zeros_like(frame)
 
@@ -59,10 +62,20 @@ while True:
 
     # Merge the canvas with the original frame
     combined = cv2.add(frame, canvas)
+    
+    # Create a white background for the mask display
+    mask_canvas = np.zeros_like(canvas)
+    mask_canvas.fill(255)
+    
+    # Draw the path on the mask canvas in black
+    for i in range(1, len(points)):
+        if points[i - 1] is None or points[i] is None:
+            continue
+        cv2.line(mask_canvas, points[i - 1], points[i], (0, 0, 0), 3)
 
     # Display the result
     cv2.imshow('Virtual Paint', combined)
-    cv2.imshow('Mask', mask)
+    cv2.imshow('Mask', mask_canvas)
 
     # Clear canvas if 'c' is pressed
     key = cv2.waitKey(1) & 0xFF
@@ -72,10 +85,11 @@ while True:
 
     # Quit if 'q' is pressed
     elif key == ord('q'):
+        # Save the canvas before quitting only if we have drawn something
+        if len(points) > 0:
+            cv2.imwrite('virtual_paint_output.png', canvas)
         break
 
-# Save the canvas as an image
-cv2.imwrite('virtual_paint_output.png', canvas)
-
+# Release resources
 cap.release()
 cv2.destroyAllWindows()
